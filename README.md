@@ -1,15 +1,20 @@
 # color-brains
 
 Research into the transition schemes of colorbars for maxmimum perceptual differentiation
+
 __author__
+
 james barrett
+
 __email__ 
+
 jbs.public.function@gmail.com
+
 __LinkedIn__
+
 https://www.linkedin.com/in/james-barrett-36075bb3/
 
 ## Categorized colormaps
-
 
 ```python
     cmaps = [('Perceptually Uniform Sequential', [
@@ -65,4 +70,5 @@ len(mpl.cm._colormaps.keys())
 only 83 are categorized currently by matplotlib.
 
 __Initial Research__
+
 In order to facilitate more in depth research it would be helpful to have more data. I want to come up with a algorithm that will define colormaps by category and then categorize the uncategorized colormaps.
