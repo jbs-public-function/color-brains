@@ -70,7 +70,3 @@ len(mpl.cm._colormaps.keys())
 only 83 are categorized currently by matplotlib.
 
 Adding all of the *_r colors, the colorbars in reverse to their appropriate categories leave us with all but 4 of the color gradients categorized.
-
-This will us to use reverse data in the mix.
-
-I want to try and categorize the color gradients since I have a labeled category that is somewhat meaningful.
