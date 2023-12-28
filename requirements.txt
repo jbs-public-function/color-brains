@@ -1,7 +1,15 @@
+# analytics tools
 pandas==2.1.3
+
+# plotting libraries
 matplotlib==3.8.1
+seaborn==0.13.0
+plotly==5.18.0
+
+# jupyter
 jupyter==1.0.0
 ipykernel==6.26.0
+
+# machine learning
 scikit-learn==1.3.2
 tensorflow==2.14.0
-plotly==5.18.0
