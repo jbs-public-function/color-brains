@@ -161,5 +161,8 @@ def calculate_rowwise_probability(arr: np.array) -> np.array:
       ]
 
       s.t. all rows sum to 1.0
+
+      column-wise summation => .sum(axis=0)
+      row-wise summation => .sum(axis=1)
    """
    return (arr.T / arr.sum(axis=1)).T
