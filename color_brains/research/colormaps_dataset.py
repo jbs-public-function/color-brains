@@ -11,11 +11,11 @@ from matplotlib.pyplot import imshow
 from skimage.transform import resize
 
 
-filepath = os.path.join(os.path.dirname(__file__), "data", "cmap_dataset.csv")
-os.makedirs(os.path.dirname(filepath), exist_ok=True)
+datapath = os.path.join(os.path.dirname(__file__), "data")
+os.makedirs(datapath, exist_ok=True)
 
 colors_dir = os.path.join(
-   os.path.dirname(filepath),
+   datapath,
    "color_images",
 )
 
@@ -73,11 +73,17 @@ def generate_cmap_data() -> List[Tuple[str, str, int, float, float, float, float
    return cmap_data
 
 
-def cmap_dataframe(refresh: bool = False) -> pd.DataFrame:
+def cmap_dataframe(convert_data_to_int: bool = False, refresh: bool = False) -> pd.DataFrame:
+    if convert_data_to_int:
+       filepath = os.path.join(datapath, "integer_cmap_dataset.csv")
+    else:
+       filepath = os.path.join(datapath, "scaled_cmap_dataset.csv")
+
     if refresh or not os.path.isfile(filepath):
         cmap_df = pd.DataFrame(generate_cmap_data(), columns=["category", "cmap_name", "n", "red", "green", "blue", "alpha"])
-        for column in ["red", "green", "blue", "alpha"]:
-            cmap_df[column] = (cmap_df[column] * 255).astype(int)
+        if convert_data_to_int:
+         for column in ["red", "green", "blue", "alpha"]:
+               cmap_df[column] = (cmap_df[column] * 255).astype(int)
         cmap_df.to_csv(filepath)
         return cmap_df
     return pd.read_csv(filepath, index_col=0)
