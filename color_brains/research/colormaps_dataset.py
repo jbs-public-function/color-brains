@@ -11,11 +11,11 @@ from matplotlib.pyplot import imshow
 from skimage.transform import resize
 
 
-filepath = os.path.join(os.path.dirname(__file__), "data", "cmap_dataset.csv")
-os.makedirs(os.path.dirname(filepath), exist_ok=True)
+datapath = os.path.join(os.path.dirname(__file__), "data")
+os.makedirs(datapath, exist_ok=True)
 
 colors_dir = os.path.join(
-   os.path.dirname(filepath),
+   datapath,
    "color_images",
 )
 
@@ -73,11 +73,17 @@ def generate_cmap_data() -> List[Tuple[str, str, int, float, float, float, float
    return cmap_data
 
 
-def cmap_dataframe(refresh: bool = False) -> pd.DataFrame:
+def cmap_dataframe(convert_data_to_int: bool = False, refresh: bool = False) -> pd.DataFrame:
+    if convert_data_to_int:
+       filepath = os.path.join(datapath, "integer_cmap_dataset.csv")
+    else:
+       filepath = os.path.join(datapath, "scaled_cmap_dataset.csv")
+
     if refresh or not os.path.isfile(filepath):
         cmap_df = pd.DataFrame(generate_cmap_data(), columns=["category", "cmap_name", "n", "red", "green", "blue", "alpha"])
-        for column in ["red", "green", "blue", "alpha"]:
-            cmap_df[column] = (cmap_df[column] * 255).astype(int)
+        if convert_data_to_int:
+         for column in ["red", "green", "blue", "alpha"]:
+               cmap_df[column] = (cmap_df[column] * 255).astype(int)
         cmap_df.to_csv(filepath)
         return cmap_df
     return pd.read_csv(filepath, index_col=0)
@@ -101,3 +107,62 @@ def generate_cmap_tensors(refresh: bool = False) -> None:
             
             ax = imshow(img_array, aspect='auto')
             ax.write_png(png_filename)
+
+
+def generate_cmap_probabilities(
+      exclude: List[str] = ["Qualitative", "Uncategorized"]
+   ) -> Tuple[np.array, np.array, np.array]:
+   red_proba, green_proba, blue_proba = np.zeros((256,256)), np.zeros((256,256)), np.zeros((256,256))
+   df = cmap_dataframe(convert_data_to_int=True)
+
+   for category in df[~df.category.isin(exclude)].category.unique():
+      for cmap_name in df[df.category == category].cmap_name.unique():
+         rgb = df[(df.category == category) &  (df.cmap_name == cmap_name)]
+         first_value = True
+         for _, _rgb in rgb.iterrows():
+               if first_value:
+                  current_red = _rgb['red']
+                  current_green = _rgb['green']
+                  current_blue = _rgb['blue']
+                  first_value = False
+                  continue
+
+               next_red = _rgb['red']
+               next_green = _rgb['green']
+               next_blue = _rgb['blue']
+
+               red_proba[current_red][next_red] += 1
+               green_proba[current_green][next_green] += 1
+               blue_proba[current_blue][next_blue] += 1
+
+               current_red = next_red
+               current_green = next_green
+               current_blue = next_blue
+
+   return (
+      calculate_rowwise_probability(red_proba),
+      calculate_rowwise_probability(green_proba),
+      calculate_rowwise_probability(blue_proba)
+   )
+
+
+def calculate_rowwise_probability(arr: np.array) -> np.array:
+   """
+      [
+         [1, 2, 3],
+         [4, 5, 6],
+         [7, 8, 9]
+      ]
+      =>
+      [
+         [1/6, 1/3, 1/2],
+         [4/15, 1/3, 2/5],
+         [7/24, 1/3, 9/24]
+      ]
+
+      s.t. all rows sum to 1.0
+
+      column-wise summation => .sum(axis=0)
+      row-wise summation => .sum(axis=1)
+   """
+   return (arr.T / arr.sum(axis=1)).T
