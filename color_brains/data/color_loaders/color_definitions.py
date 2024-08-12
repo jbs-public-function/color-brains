@@ -26,7 +26,7 @@ class ColorsBaseEnum(Enum):
             mpl_cmap = cls.load_colormap(colormap_name, color_name)
             cmap = [mpl_cmap(i) for i in range(256)]
             yield mangled_name, cmap
-            
+
             reversed_name: str = f"{mangled_name}_r"
             cmap.reverse()
             yield reversed_name, cmap
