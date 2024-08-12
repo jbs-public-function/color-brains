@@ -48,3 +48,7 @@ class TestLoaders(TestCase):
     def test_convert_integers(self):
         df = CmapLoaderBase.make_dataframe(test_colors_0_255)
         pd.testing.assert_frame_equal(df, test_colors_0_1)
+
+    def test_mpl_loader(self):
+        df = MplCmapLoader.process_cmap('viridis')
+        self.assertTupleEqual((256, 3), df.shape)

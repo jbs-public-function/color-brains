@@ -3,20 +3,16 @@ from typing import *
 
 # colors
 import matplotlib as mpl
+from palettable import cartocolors, colorbrewer
 
 # analysis
 import pandas as pd
 import numpy as np
 
 # https://forecastegy.com/posts/lightgbm-multi-output-regression-classification-python/
-
-
-Sequential = [
-    'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds','YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
-
-
 RGB_Type = Tuple[float | int, float | int, float | int]
 RGBA_Type = Tuple[float | int, float | int, float | int, float | int]
+CMAP_TYPE = mpl.colors.LinearSegmentedColormap
 
 
 class InvalidShapeError(AssertionError):
@@ -33,7 +29,9 @@ class CmapLoaderBase:
             del df[3]
         
         try:
-            assert df.shape[0] == 3 or df.shape[1] > 0
+            # there are rows in the dataframe
+            # there are only 3 columns
+            assert df.shape[0] > 0 and df.shape[1] == 3
         except AssertionError:
             raise InvalidShapeError(f"Invalid Dataframe of shape {df.shape}")
         
@@ -56,6 +54,7 @@ class CmapLoaderBase:
 
 class MplCmapLoader(CmapLoaderBase):
     @classmethod
-    def process_cmap(cls, cmap_name: str) -> pd.DataFrame:
-        cmap = mpl.cm._colormaps[cmap_name]
+    def process_cmap(cls, cmap: str | CMAP_TYPE) -> pd.DataFrame:
+        if isinstance(cmap, str):
+            cmap = mpl.cm._colormaps[cmap]
         return cls.make_dataframe([cmap(i) for i in range(cmap.N)])
