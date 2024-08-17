@@ -1,10 +1,10 @@
 # color-brains
 
 Research into the transition schemes of colorbars for maxmimum perceptual differentiation
-
+___
 __author__
 
-james barrett
+James Barrett
 
 __email__ 
 
@@ -14,6 +14,7 @@ __LinkedIn__
 
 https://www.linkedin.com/in/james-barrett-36075bb3/
 
+---
 
 ### Work related to the analysis to colormaps as provided by matplotlib and palettable
 [matplotlib colormaps](https://matplotlib.org/stable/users/explain/colors/colormaps.html#overview)
