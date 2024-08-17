@@ -12,6 +12,7 @@ jbs.public.function@gmail.com
 
 __LinkedIn__
 
+
 https://www.linkedin.com/in/james-barrett-36075bb3/
 
 ---
