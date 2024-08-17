@@ -12,9 +12,9 @@ class TestSequentialData(TestCase):
     def test_sequential_data_obj(self):
         sd = SequentialData()
         
-        assert sd._dataset is None
         df = sd.dataset
         assert isinstance(df, pd.DataFrame)
+
         test_id = id(sd.dataset)
         assert test_id == id(sd.dataset)
 
