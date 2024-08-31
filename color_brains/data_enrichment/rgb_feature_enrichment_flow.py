@@ -12,7 +12,7 @@ from metaflow import FlowSpec, step
 from color_brains.data.sequential_data import SequentialData
 
 
-class RGBFeatureFlow(FlowSpec):
+class RGBFeatureEnrichmentFlow(FlowSpec):
     rgb_columns: List[str] = ["red", "green", "blue"]
 
     @step
@@ -38,10 +38,6 @@ class RGBFeatureFlow(FlowSpec):
         print("Features Created Dropping NaN Rows")
         self.dataset.dropna(how='any', inplace=True)
         print(f"Dataset has shape of {self.dataset.shape}")
-        print("Dataset Head")
-        print(self.dataset.head(5))
-        print("\nDataset Tail")
-        print(self.dataset.tail(5))
         print(f"Dataset has {self.dataset[self.cmap_column_name].nunique()} Unique Colormaps")
     
     def prev_rgb(self):
@@ -79,4 +75,4 @@ class RGBFeatureFlow(FlowSpec):
 
 
 if __name__ == "__main__":
-    RGBFeatureFlow()
+    RGBFeatureEnrichmentFlow()
