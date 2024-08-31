@@ -12,3 +12,6 @@ jupyter==1.0.0
 # machine learning
 scikit-learn==1.3.2
 lightgbm==4.4.0
+
+# metaflow
+metaflow==2.12.12

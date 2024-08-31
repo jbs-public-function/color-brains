@@ -1,7 +1,7 @@
 # pandas
 import pandas as pd
 
-# internal packages
+# internal modules
 from color_brains.data import CmapLoader, MplSequentialColors, PalletableSequentialColors
 
 
@@ -25,6 +25,6 @@ class SequentialData:
                         continue
                     df = pd.concat([df, _df])
             df = df[[self.CmapNameColumn] + list(initial_columns)]
-            self._dataset = df
+            self._dataset = df.reset_index(drop=True)
                         
         return self._dataset
