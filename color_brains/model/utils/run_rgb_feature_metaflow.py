@@ -28,4 +28,3 @@ def run_rgb_feature_metaflow(flow_filepath: str):
     
     except Exception as e:
         print(f"An error occurred: {e}")
-
