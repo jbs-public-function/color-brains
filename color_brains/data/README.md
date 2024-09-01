@@ -16,6 +16,4 @@ The inputs are colormap libraries with labeled classes.
 
 [matplotlib colormaps](https://matplotlib.org/stable/users/explain/colors/colormaps.html#overview)
 
-[plotly continous color scales](https://plotly.com/python/builtin-colorscales/)
-
 [palettable color schemes](https://jiffyclub.github.io/palettable/)
