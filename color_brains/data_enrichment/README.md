@@ -25,6 +25,7 @@ red_start, green_start, blue_start,
 # rgb of end of sequence
 red_end, green_end, blue_end,
 
+## Following Independent Variables Not Implemented
 # function of all three colors
 f(current_red, current_green, current_blue),
 
