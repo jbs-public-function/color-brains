@@ -20,17 +20,18 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
         print(f"Building RGB Dataset For Modeling")
         sd = SequentialData()
         self.cmap_column_name = sd.CmapNameColumn
-        self.target_cols = [self.cmap_column_name] + self.rgb_columns
+        self.target_cols = [self.cmap_column_name] + self.get_rgb_columns()
         self.dataset = sd.dataset
         self.next(self.rgb_features)
     
     @step
     def rgb_features(self):
-        self.prev_rgb()
-        self.sqrt_rgb()
-        self.cbrt_rgb()
-        self.rgb_start_of_sequence()
-        self.next_rgb()
+        self.dataset = self.prev_rgb(self.dataset, self.target_cols, self.cmap_column_name)
+        self.dataset = self.sqrt_rgb(self.dataset)
+        self.dataset = self.cbrt_rgb(self.dataset)
+        self.dataset = self.rgb_start_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
+        self.dataset = self.rgb_end_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
+        self.dataset = self.next_rgb(self.dataset)
         self.next(self.end)
     
     @step
@@ -40,38 +41,55 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
         print(f"Dataset has shape of {self.dataset.shape}")
         print(f"Dataset has {self.dataset[self.cmap_column_name].nunique()} Unique Colormaps")
     
-    def prev_rgb(self):
+    @classmethod
+    def prev_rgb(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
         print("Creating Previous RGB Independent Feature")
-        prev_rgb = self.dataset[self.target_cols].groupby([self.cmap_column_name]).shift(1).reset_index(drop=True)
-        prev_rgb.rename(columns=self.rename_rgb_columns_map("previous"), inplace=True)
-        self.dataset = self.dataset.join(prev_rgb)
+        prev_rgb = dataset[target_cols].groupby([cmap_column_name]).shift(1).reset_index(drop=True)
+        prev_rgb.rename(columns=cls.rename_rgb_columns_map("previous"), inplace=True)
+        return dataset.join(prev_rgb)
 
-    def sqrt_rgb(self):
+    @classmethod
+    def sqrt_rgb(cls, dataset: pd.DataFrame) -> pd.DataFrame:
         print("Creating Square Root RGB Independent Feature")
-        sqrt_df =  np.sqrt(self.dataset[self.rgb_columns])
-        sqrt_df.rename(columns=self.rename_rgb_columns_map("sqrt"), inplace=True)
-        self.dataset = self.dataset.join(sqrt_df)
+        sqrt_df = np.sqrt(dataset[cls.get_rgb_columns()])
+        sqrt_df.rename(columns=cls.rename_rgb_columns_map("sqrt"), inplace=True)
+        return dataset.join(sqrt_df)
 
-    def cbrt_rgb(self):
+    @classmethod
+    def cbrt_rgb(cls, dataset: pd.DataFrame) -> pd.DataFrame:
         print("Creating Cube Root RGB Independent Feature")
-        cbrt_df =  np.cbrt(self.dataset[self.rgb_columns])
-        cbrt_df.rename(columns=self.rename_rgb_columns_map("cbrt"), inplace=True)
-        self.dataset = self.dataset.join(cbrt_df)
+        cbrt_df =  np.cbrt(dataset[cls.get_rgb_columns()])
+        cbrt_df.rename(columns=cls.rename_rgb_columns_map("cbrt"), inplace=True)
+        return dataset.join(cbrt_df)
 
-    def rgb_start_of_sequence(self):
+    @classmethod
+    def rgb_start_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
         print("Creating Start of Sequence RGB Independent Feature")
-        start_rgb = self.dataset[self.target_cols].groupby(self.cmap_column_name).nth(0)
-        start_rgb.rename(columns=self.rename_rgb_columns_map("start"), inplace=True)
-        self.dataset = pd.merge(self.dataset, start_rgb, how='left', on=[self.cmap_column_name])
+        start_rgb = dataset[target_cols].groupby(cmap_column_name).nth(0)
+        start_rgb.rename(columns=cls.rename_rgb_columns_map("start"), inplace=True)
+        return pd.merge(dataset, start_rgb, how='left', on=[cmap_column_name])
 
-    def next_rgb(self):
+    @classmethod
+    def rgb_end_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
+        print("Creating End of Sequence RGB Independent Feature")
+        start_rgb = dataset[target_cols].groupby(cmap_column_name).nth(-1)
+        start_rgb.rename(columns=cls.rename_rgb_columns_map("end"), inplace=True)
+        return pd.merge(dataset, start_rgb, how='left', on=[cmap_column_name])
+
+    @classmethod
+    def next_rgb(cls, dataset: pd.DataFrame) -> pd.DataFrame:
         print("Creating Next RGB Dependent Feature")
-        y_rgb = self.dataset[self.rgb_columns].shift(-1)
-        y_rgb.rename(columns=self.rename_rgb_columns_map("next"), inplace=True)
-        self.dataset = self.dataset.join(y_rgb)
+        y_rgb = dataset[cls.get_rgb_columns()].shift(-1)
+        y_rgb.rename(columns=cls.rename_rgb_columns_map("next"), inplace=True)
+        return dataset.join(y_rgb)
+    
+    @classmethod
+    def get_rgb_columns(cls) -> List[str]:
+        return ['red', 'green', 'blue']
 
-    def rename_rgb_columns_map(self, tag: str) -> Dict[str, str]:
-        return {col: f"{tag}_{col}" for col in self.rgb_columns}
+    @classmethod
+    def rename_rgb_columns_map(cls, tag: str) -> Dict[str, str]:
+        return {col: f"{tag}_{col}" for col in cls.get_rgb_columns()}
 
 
 if __name__ == "__main__":
