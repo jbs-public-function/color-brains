@@ -27,8 +27,8 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
     @step
     def rgb_features(self):
         self.dataset = self.prev_rgb(self.dataset, self.target_cols, self.cmap_column_name)
-        self.dataset = self.sqrt_rgb(self.dataset)
-        self.dataset = self.cbrt_rgb(self.dataset)
+        # self.dataset = self.sqrt_rgb(self.dataset)
+        # self.dataset = self.cbrt_rgb(self.dataset)
         self.dataset = self.rgb_start_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
         self.dataset = self.rgb_end_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
         self.dataset = self.next_rgb(self.dataset)

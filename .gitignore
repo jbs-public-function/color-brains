@@ -167,3 +167,4 @@ tmp
 
 # metaflow
 **/.metaflow*
+**/*metaflow_card_cache*
