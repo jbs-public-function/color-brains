@@ -33,7 +33,7 @@ class ColorsBaseEnum(Enum):
             
         
     @classmethod
-    def load_colormap(cls, cmap_name: str) -> matplotlib.colors.LinearSegmentedColormap:
+    def load_colormap(cls, colormap_name: str, cmap_name: str) -> matplotlib.colors.LinearSegmentedColormap:
         raise NotImplementedError("Implement In Subclass.")
 
 

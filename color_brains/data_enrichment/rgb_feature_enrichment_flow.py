@@ -27,10 +27,11 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
     @step
     def rgb_features(self):
         self.dataset = self.prev_rgb(self.dataset, self.target_cols, self.cmap_column_name)
-        # self.dataset = self.sqrt_rgb(self.dataset)
-        # self.dataset = self.cbrt_rgb(self.dataset)
         self.dataset = self.rgb_start_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
         self.dataset = self.rgb_end_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
+        self.dataset = self.calculate_cos_theta(self.dataset, "start")
+        self.dataset = self.calculate_cos_theta(self.dataset, "previous")
+        self.dataset = self.calculate_cos_theta(self.dataset, "end")
         self.dataset = self.next_rgb(self.dataset)
         self.next(self.end)
     
@@ -40,6 +41,8 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
         self.dataset.dropna(how='any', inplace=True)
         print(f"Dataset has shape of {self.dataset.shape}")
         print(f"Dataset has {self.dataset[self.cmap_column_name].nunique()} Unique Colormaps")
+        self.independent_variables = [c for c in self.dataset.columns if c.startswith('next')]
+        self.dependent_variables = [c for c in self.dataset.columns if not c not in self.independent_variables]
     
     @classmethod
     def prev_rgb(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
@@ -49,18 +52,20 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
         return dataset.join(prev_rgb)
 
     @classmethod
-    def sqrt_rgb(cls, dataset: pd.DataFrame) -> pd.DataFrame:
-        print("Creating Square Root RGB Independent Feature")
-        sqrt_df = np.sqrt(dataset[cls.get_rgb_columns()])
-        sqrt_df.rename(columns=cls.rename_rgb_columns_map("sqrt"), inplace=True)
-        return dataset.join(sqrt_df)
+    def calculate_cos_theta(cls, dataset: pd.DataFrame, label: str) -> pd.DataFrame:
+        labeled_columns = cls.rename_rgb_columns_map(label)
+        rgb, labeled_rgb = labeled_columns.keys(), labeled_columns.values()
+        print(rgb, labeled_rgb)
+        cos_theta_label = f"cos_theta_{label}"
 
-    @classmethod
-    def cbrt_rgb(cls, dataset: pd.DataFrame) -> pd.DataFrame:
-        print("Creating Cube Root RGB Independent Feature")
-        cbrt_df =  np.cbrt(dataset[cls.get_rgb_columns()])
-        cbrt_df.rename(columns=cls.rename_rgb_columns_map("cbrt"), inplace=True)
-        return dataset.join(cbrt_df)
+        print(f"Calculating Cos Theta for {cos_theta_label} RGB Independent Feature")
+
+        dot_product = np.einsum('ij,ij->i', dataset[rgb].values, dataset[labeled_rgb].values)
+        magnitude_rgb = np.linalg.norm(dataset[rgb], axis=1)
+        magnitude_label_rgb = np.linalg.norm(dataset[labeled_rgb], axis=1)
+
+        cos_theta = pd.DataFrame(dot_product / (magnitude_rgb * magnitude_label_rgb), columns=[cos_theta_label])
+        return dataset.join(cos_theta)
 
     @classmethod
     def rgb_start_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
@@ -90,7 +95,26 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
     @classmethod
     def rename_rgb_columns_map(cls, tag: str) -> Dict[str, str]:
         return {col: f"{tag}_{col}" for col in cls.get_rgb_columns()}
+"""
 
+# Define two vectors
+v1 = np.array([3, 4])
+v2 = np.array([6, 8])
+
+# Calculate the dot product
+dot_product = np.dot(v1, v2)
+
+# Calculate the magnitudes of the vectors
+magnitude_v1 = np.linalg.norm(v1)
+magnitude_v2 = np.linalg.norm(v2)
+
+# Calculate the cosine of the angle
+cos_theta = dot_product / (magnitude_v1 * magnitude_v2)
+
+# Calculate the angle in radians and then convert to degrees
+angle_radians = np.arccos(cos_theta)
+angle_degrees = np.degrees(angle_radians)
+"""
 
 if __name__ == "__main__":
     RGBFeatureEnrichmentFlow()
