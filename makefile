@@ -16,3 +16,7 @@ view-results:
 view-outputs:
 	# view results card
 	python $(RUN_MODEL_SCRIPT_PATH) card view visualize_outputs --id visualize_outputs
+
+run-tests:
+	# run tests
+	pytest

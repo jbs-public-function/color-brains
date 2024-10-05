@@ -43,11 +43,31 @@ activate and install requirements
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 ```
+
+### with venv active
+```shell
+source .venv/bin/activate
+```
+
+___
+run model
+```shell
+make run-model
+```
+___
+see results
+```shell
+make view-results
+```
+___
+see visualizations
+```shell
+make view-outputs
+```
 ___
 run tests
 ```shell
-source .venv/bin/activate
-pytest tests/
+make run-tests
 ```
 
 ___
