@@ -8,3 +8,11 @@ run-feature-flow:
 run-model:
 	# run model
 	python $(RUN_MODEL_SCRIPT_PATH) run
+
+view-results:
+	# view results card
+	python $(RUN_MODEL_SCRIPT_PATH) card view model_results --id results
+
+view-outputs:
+	# view results card
+	python $(RUN_MODEL_SCRIPT_PATH) card view visualize_outputs --id visualize_outputs
