@@ -26,10 +26,13 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
     
     @step
     def rgb_features(self):
+        # need to add some smoothing
         self.dataset = self.prev_rgb(self.dataset, self.target_cols, self.cmap_column_name)
-        self.dataset = self.rgb_start_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
-        self.dataset = self.rgb_end_of_sequence(self.dataset, self.target_cols, self.cmap_column_name)
+        self.dataset = self.rgb_nth_of_sequence(self.dataset, self.target_cols, self.cmap_column_name, "start", 0)
+        self.dataset = self.rgb_nth_of_sequence(self.dataset, self.target_cols, self.cmap_column_name, "end", -1)
+        self.dataset = self.rgb_nth_of_sequence(self.dataset, self.target_cols, self.cmap_column_name, "middle", 256//2)
         self.dataset = self.calculate_cos_theta(self.dataset, "start")
+        self.dataset = self.calculate_cos_theta(self.dataset, "middle")
         self.dataset = self.calculate_cos_theta(self.dataset, "previous")
         self.dataset = self.calculate_cos_theta(self.dataset, "end")
         self.dataset = self.next_rgb(self.dataset)
@@ -53,6 +56,25 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
 
     @classmethod
     def calculate_cos_theta(cls, dataset: pd.DataFrame, label: str) -> pd.DataFrame:
+        """
+            # Define two vectors
+            v1 = np.array([3, 4])
+            v2 = np.array([6, 8])
+
+            # Calculate the dot product
+            dot_product = np.dot(v1, v2)
+
+            # Calculate the magnitudes of the vectors
+            magnitude_v1 = np.linalg.norm(v1)
+            magnitude_v2 = np.linalg.norm(v2)
+
+            # Calculate the cosine of the angle
+            cos_theta = dot_product / (magnitude_v1 * magnitude_v2)
+
+            # Calculate the angle in radians and then convert to degrees
+            angle_radians = np.arccos(cos_theta)
+            angle_degrees = np.degrees(angle_radians)
+        """
         labeled_columns = cls.rename_rgb_columns_map(label)
         rgb, labeled_rgb = labeled_columns.keys(), labeled_columns.values()
         print(rgb, labeled_rgb)
@@ -68,17 +90,10 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
         return dataset.join(cos_theta)
 
     @classmethod
-    def rgb_start_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
-        print("Creating Start of Sequence RGB Independent Feature")
-        start_rgb = dataset[target_cols].groupby(cmap_column_name).nth(0)
-        start_rgb.rename(columns=cls.rename_rgb_columns_map("start"), inplace=True)
-        return pd.merge(dataset, start_rgb, how='left', on=[cmap_column_name])
-
-    @classmethod
-    def rgb_end_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str) -> pd.DataFrame:
-        print("Creating End of Sequence RGB Independent Feature")
-        start_rgb = dataset[target_cols].groupby(cmap_column_name).nth(-1)
-        start_rgb.rename(columns=cls.rename_rgb_columns_map("end"), inplace=True)
+    def rgb_nth_of_sequence(cls, dataset: pd.DataFrame, target_cols: List[str], cmap_column_name: str, label: str, nth: int) -> pd.DataFrame:
+        print("Creating Nth of Sequence RGB Independent Feature")
+        start_rgb = dataset[target_cols].groupby(cmap_column_name).nth(nth)
+        start_rgb.rename(columns=cls.rename_rgb_columns_map(label), inplace=True)
         return pd.merge(dataset, start_rgb, how='left', on=[cmap_column_name])
 
     @classmethod
@@ -95,26 +110,7 @@ class RGBFeatureEnrichmentFlow(FlowSpec):
     @classmethod
     def rename_rgb_columns_map(cls, tag: str) -> Dict[str, str]:
         return {col: f"{tag}_{col}" for col in cls.get_rgb_columns()}
-"""
 
-# Define two vectors
-v1 = np.array([3, 4])
-v2 = np.array([6, 8])
-
-# Calculate the dot product
-dot_product = np.dot(v1, v2)
-
-# Calculate the magnitudes of the vectors
-magnitude_v1 = np.linalg.norm(v1)
-magnitude_v2 = np.linalg.norm(v2)
-
-# Calculate the cosine of the angle
-cos_theta = dot_product / (magnitude_v1 * magnitude_v2)
-
-# Calculate the angle in radians and then convert to degrees
-angle_radians = np.arccos(cos_theta)
-angle_degrees = np.degrees(angle_radians)
-"""
 
 if __name__ == "__main__":
     RGBFeatureEnrichmentFlow()

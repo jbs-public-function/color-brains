@@ -55,11 +55,11 @@ class RGBModelFlow(FlowSpec):
         self.xgb_reg.fit(X_train, y_train)
         self.y_pred = pd.DataFrame(self.xgb_reg.predict(X_test), columns=self.y_cols)
         self.y_test = y_test
-        self.next(self.post_process_model)
+        self.next(self.model_results)
 
     @card(id='results')
     @step
-    def post_process_model(self):
+    def model_results(self):
         # causes segmentation fault
         # https://github.com/dmlc/xgboost/issues/10686
         # raise Exception(f"{self.xgb_reg.get_booster().get_score(importance_type='weight')}")
@@ -103,11 +103,70 @@ class RGBModelFlow(FlowSpec):
 
         plt.close()
 
+        self.next(self.visualize_outputs)
+
+    @card(id='visualize_outputs')
+    @step
+    def visualize_outputs(self):
+        output_vis_card = current.card['visualize_outputs']
+        output_vis_card.append(Markdown("# Visualizations"))
+
+        rgb_names = ['red', 'green', 'blue']
+        dataset = self.latest_run.data.dataset.reset_index(drop=True)
+        dataset['category'] = dataset[self.latest_run.data.cmap_column_name].astype('str').str.split('.', expand=True)[0]
+        
+        dataset_predicted = self.xgb_reg.predict(dataset[self.x_cols])
+        dataset_predicted[dataset_predicted > 1] = 1.0
+        dataset_predicted[dataset_predicted < 0] = 0.0
+        dataset_predicted = dataset[["category", self.latest_run.data.cmap_column_name]].join(pd.DataFrame(dataset_predicted, columns=rgb_names)).reset_index(drop=True)
+        for _category in dataset.category.unique():
+            output_vis_card.append(Markdown(f"### {_category.title()}"))
+
+            category_set = dataset[dataset.category == _category]
+            predicted_category_set = dataset_predicted[dataset_predicted.category == _category]
+            for cmap_name in category_set[self.latest_run.data.cmap_column_name].unique():
+                cmap_set = category_set[category_set[self.latest_run.data.cmap_column_name] == cmap_name]
+                predicted_cmap_set = predicted_category_set[predicted_category_set[self.latest_run.data.cmap_column_name] == cmap_name]
+                
+                fig = self.plot_colorramps(predicted_cmap_set, cmap_set)
+                output_vis_card.append(Image.from_matplotlib(fig))
+                plt.close()
+
         self.next(self.end)
 
     @step
     def end(self):
         ...
+
+    def plot_colorramps(self, colorramp: pd.DataFrame, comparison_ramp: pd.DataFrame=None) ->plt.figure:
+        ramp_name = f"{colorramp.colormap_name.unique()[0].split('.')[-1]}"
+        figsize = (8, 1)
+        comparison_coloramp_ax = None
+        if comparison_ramp is not None:
+            fig, axes = plt.subplots(figsize=figsize, nrows=2)
+            colorramp_ax, comparison_coloramp_ax = axes
+        else:
+            fig, colorramp_ax = plt.subplots(figsize=figsize)
+        plt.subplots_adjust(hspace=0.0, top=.6, bottom=0.01)
+
+        colorramp_ax.axis(xmin=0, xmax=len(colorramp))
+        colorramp_ax.tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
+        for index, color in enumerate(np.array(colorramp[['red', 'green', 'blue']])):
+            colorramp_ax.axvspan(index, index + 1, color=color)
+        
+        colorramp_ax.set_xlabel(f"Model Output Vs Actual Output{ramp_name.title()}", labelpad=5)
+        colorramp_ax.xaxis.set_label_position('top')
+        colorramp_ax.spines['bottom'].set_visible(False)
+        if not comparison_coloramp_ax:
+            return fig
+
+        comparison_coloramp_ax.axis(xmin=0, xmax=len(colorramp))
+        comparison_coloramp_ax.tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
+        comparison_coloramp_ax.spines['top'].set_visible(False)
+
+        for index, color in enumerate(np.array(comparison_ramp[['red', 'green', 'blue']])):
+            comparison_coloramp_ax.axvspan(index, index + 1, color=color)
+        return fig
 
 
 if __name__ == "__main__":
