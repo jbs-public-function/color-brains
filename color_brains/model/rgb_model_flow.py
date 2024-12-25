@@ -138,7 +138,7 @@ class RGBModelFlow(FlowSpec):
     def end(self):
         ...
 
-    def plot_colorramps(self, colorramp: pd.DataFrame, comparison_ramp: pd.DataFrame=None) ->plt.figure:
+    def plot_colorramps(self, colorramp: pd.DataFrame, comparison_ramp: pd.DataFrame=None) -> plt.figure:
         ramp_name = f"{colorramp.colormap_name.unique()[0].split('.')[-1]}"
         figsize = (8, 1)
         comparison_coloramp_ax = None
