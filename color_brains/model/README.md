@@ -5,7 +5,7 @@ $\chi = red_i, green_i, blue_i, ..., rgbfeature_i$
 
 $y = red_{i+t}, green_{i+t}, blue_{i+t}$
 
-$  \forall i$
+$\forall i$
 
 ---
 ### research

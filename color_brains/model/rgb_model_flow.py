@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error
 
 # metaflow
 from metaflow import FlowSpec, Flow, step, Parameter, card, current
-from metaflow.cards import Markdown, Image, Table
+from metaflow.cards import Markdown, Image
 
 # internal modules
 from color_brains.model.utils import run_rgb_feature_metaflow, DATA_ENRICHMENT_METAFLOW_FILEPATH, DATA_ENRICHMENT_METAFLOW_NAME
