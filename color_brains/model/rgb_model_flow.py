@@ -154,7 +154,7 @@ class RGBModelFlow(FlowSpec):
         for index, color in enumerate(np.array(colorramp[['red', 'green', 'blue']])):
             colorramp_ax.axvspan(index, index + 1, color=color)
         
-        colorramp_ax.set_xlabel(f"Model Output Vs Actual Output{ramp_name.title()}", labelpad=5)
+        colorramp_ax.set_xlabel(f"Model Output Vs Actual Output {ramp_name.title()}", labelpad=5)
         colorramp_ax.xaxis.set_label_position('top')
         colorramp_ax.spines['bottom'].set_visible(False)
         if not comparison_coloramp_ax:
