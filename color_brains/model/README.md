@@ -1,4 +1,5 @@
 # Model
+## predict next (red, green, blue) from a given (red, green, blue)
 Use Gradient Boosted machines to fit a model on dataset with multi-channel output 
 ___
 $\chi = red_i, green_i, blue_i, ..., rgbfeature_i$
@@ -6,6 +7,13 @@ $\chi = red_i, green_i, blue_i, ..., rgbfeature_i$
 $y = red_{i+t}, green_{i+t}, blue_{i+t}$
 
 $\forall i$
+
+---
+## unsupervised clustering
+
+$\chi = red_i, green_i, blue_i, ..., rgbfeature_i$
+
+$y_i = \text{Cluster}(red_i, green_i, blue_i)_t$
 
 ---
 ### research
